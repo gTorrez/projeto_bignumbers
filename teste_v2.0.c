@@ -3,7 +3,7 @@
 #include <time.h>
 #include <string.h>
 #include <stdint.h>
-#define max_n 4000
+#define max_n 4020
 
 typedef struct {
     int32_t* dig;
@@ -79,7 +79,7 @@ dyn_int* sum(dyn_int* a,dyn_int* b){
     else{
         sum->head_index = a->head_index+1;
         if (a->sign == b->sign) sum->sign = a->sign;
-        else{for(short int i = sum->head_index; i>=0;i--) {
+        else{for(short int i = (sum->head_index-1); i>=0;i--) {
                 if(a->dig[i] > b->dig[i]) {sB = -1; sum->sign = a->sign; break;}
                 if(a->dig[i] < b->dig[i]) {sA = -1; sum->sign = b->sign; break;}
                 if (i==0) {
@@ -89,7 +89,10 @@ dyn_int* sum(dyn_int* a,dyn_int* b){
                     sum->head_index = 0;
                     sum->sign = '\0';
                     return sum;
-    }   }   }   }
+                }  
+            } 
+        }   
+    }
     sum->size = (size_t)((sum->head_index)*sizeof(int32_t));
     sum->dig = malloc(sum->size);
     printf("Allocating %d bytes for sum  |  signA: %d  |  signB: %d  |  signSum: %c\n", (int)sum->size,sA,sB,sum->sign);
@@ -206,7 +209,7 @@ int main( ) {
     if(B==NULL) return 1;
     print_int(B);
 
-    dyn_int* C = sum(A,B);
+    dyn_int* C = sub(A,B);
     print_int(C);
 
     free_int(A);
