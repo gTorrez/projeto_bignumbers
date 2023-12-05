@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-//#include <math.h>
 #include <string.h>
 #include <stdint.h>
 #define max_n 4000
@@ -44,7 +43,7 @@ int get_valid(int max, char s[]) {
 void print_int(dyn_int* x){
     printf("Size (bytes): %4d     |  Allocated indexes: %3d  |  Head: %3d\n\n",(int)(x->size+sizeof(dyn_int)), (int)(x->size/sizeof(int32_t)),x->head_index);
     for (short int i=x->head_index;i>=0;i--){
-        if(i==(int)(x->head_index)) {printf("%c ",x->sign);printf("%d ",x->dig[i]); continue;}
+        if(i==(int)(x->head_index)) {printf("%c",x->sign);printf("%d ",x->dig[i]); continue;}
         printf("%09d ",x->dig[i]);
     }
     printf("\n\n");
@@ -83,10 +82,14 @@ dyn_int* sum(dyn_int* a,dyn_int* b){
         else{for(short int i = sum->head_index; i>=0;i--) {
                 if(a->dig[i] > b->dig[i]) {sB = -1; sum->sign = a->sign; break;}
                 if(a->dig[i] < b->dig[i]) {sA = -1; sum->sign = b->sign; break;}
-            }
-        } 
-    }
-
+                if (i==0) {
+                    sum->size = sizeof(int32_t);
+                    sum->dig = malloc(sum->size);
+                    sum->dig[0] = 0;
+                    sum->head_index = 0;
+                    sum->sign = '\0';
+                    return sum;
+    }   }   }   }
     sum->size = (size_t)((sum->head_index)*sizeof(int32_t));
     sum->dig = malloc(sum->size);
     printf("Allocating %d bytes for sum  |  signA: %d  |  signB: %d  |  signSum: %c\n", (int)sum->size,sA,sB,sum->sign);
@@ -94,19 +97,48 @@ dyn_int* sum(dyn_int* a,dyn_int* b){
     for (short int i = 0; i<=sum->head_index; i++){     
         sum->dig[i] = (a->dig[i] * sA * !(i>a->head_index)) + ((b->dig[i]) * sB * !(i>b->head_index)) + carry;
         if(sum->dig[i]<0){
+            sum->dig[i] += 1000000000;
             carry = -1;
-            sum->dig[i] = 1000000000+sum->dig[i];
         }
-        else if (sum->dig[i]>999999999) {
+        else if (sum->dig[i]>999999999){
             sum->dig[i] -= 1000000000; 
             carry = 1;
         } 
         else carry = 0;
-        printf("Index=[%d]   |   A: %010d   |   B: %010d   |   Sum: %010d   |   Carry: %d \n",i,a->dig[i],b->dig[i],sum->dig[i],carry);
+        //printf("Index=[%d]   |   A: %010d   |   B: %010d   |   Sum: %010d   |   Carry: %d \n",i,a->dig[i],b->dig[i],sum->dig[i],carry);
     }
-    while (sum->dig[sum->head_index]==0 && sum->head_index>0) sum->head_index--;
+    while (sum->dig[sum->head_index]==0 && sum->head_index>0) {
+        //int32_t* ptr = &sum->dig[sum->head_index];
+        //free(ptr);
+        sum->head_index--;
+    }
+    //sum->size = (size_t)((sum->head_index)*sizeof(int32_t));
     return sum;
 }
+
+dyn_int* sub(dyn_int* a,dyn_int* b){
+    if (b->sign=='\0') b->sign = '-';
+    else  b->sign='\0';
+    return sum(a,b);
+}
+
+dyn_int* mult(dyn_int* a,dyn_int* b){
+    dyn_int* result = malloc(sizeof(dyn_int));
+    result->size = (size_t)(sizeof(int32_t)*(a->head_index+b->head_index+1));
+    result->dig = malloc(result->size);
+    if (b->sign == a->sign) result->sign= '\0';
+    else  result->sign= '-';
+
+    if(a->head_index > b->head_index) {
+
+    }
+    else {}
+
+
+
+    return NULL;
+}
+
 
 
 dyn_int* get_big(){
@@ -166,7 +198,6 @@ int main( ) {
     start = clock();
     printf("Size of struct: %d bytes, input is dynamically allocated  |  Input number up to %d digits:\n", (int)sizeof(dyn_int), max_n);
 
-
     dyn_int* A = get_big();
     if(A==NULL) return 1;
     print_int(A);
@@ -175,15 +206,12 @@ int main( ) {
     if(B==NULL) return 1;
     print_int(B);
 
-
     dyn_int* C = sum(A,B);
     print_int(C);
 
     free_int(A);
     free_int(B);
     free_int(C);
-
-
 
     end = clock();
     cpu_time_used = ((double) (end - start)) / (CLOCKS_PER_SEC/1000);
