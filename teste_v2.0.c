@@ -3,7 +3,7 @@
 #include <time.h>
 #include <string.h>
 #include <stdint.h>
-#define max_n 4020
+#define max_n 4000
 
 typedef struct {
     int32_t* dig;
@@ -22,22 +22,12 @@ Lista criar_lista() {
     return NULL;
 }
 
-int get_valid(int max, char s[]) {
-    int n;
-    if(max==0){
-        printf("Input %s value: ", s);
-        scanf("%d", &n);
-        while ((getchar()) != '\n');
-        return n;
+void destruir_lista(Lista l) {
+    while (l != NULL) {
+        Lista tmp = l;
+        l = l->prox;
+        free(tmp);
     }
-    printf("Input %s up to %d: ", s, max);
-    while (1) {
-        scanf("%d", &n);
-        while ((getchar()) != '\n');
-        if (n <= max && n > 0) break;
-        printf("Invalid input, try again: ");
-    }
-    return n;
 }
 
 void print_int(dyn_int* x){
@@ -55,13 +45,12 @@ void free_int(dyn_int* x){
     free(x);
 }
 
-
 void switch_sign(dyn_int* x){
     for (int i=0;i<=x->head_index;i++) x->dig[i] *= -1; 
 }
 
 dyn_int* sum(dyn_int* a,dyn_int* b){
-    dyn_int* sum = malloc(sizeof(dyn_int));
+    dyn_int* sum = (dyn_int*)malloc(sizeof(dyn_int));
     int8_t sA = 1;
     int8_t sB = 1;
     int8_t carry = 0;
@@ -74,7 +63,7 @@ dyn_int* sum(dyn_int* a,dyn_int* b){
     else if(a->head_index < b->head_index){
         sum->head_index = b->head_index+1;
         sum->sign = b->sign;
-        if (a->sign != b->sign) sA = -1;       
+        if (a->sign != b->sign) sA = -1;        
     }  
     else{
         sum->head_index = a->head_index+1;
@@ -82,6 +71,7 @@ dyn_int* sum(dyn_int* a,dyn_int* b){
         else{for(short int i = (sum->head_index-1); i>=0;i--) {
                 if(a->dig[i] > b->dig[i]) {sB = -1; sum->sign = a->sign; break;}
                 if(a->dig[i] < b->dig[i]) {sA = -1; sum->sign = b->sign; break;}
+                sum->head_index--;
                 if (i==0) {
                     sum->size = sizeof(int32_t);
                     sum->dig = malloc(sum->size);
@@ -93,7 +83,7 @@ dyn_int* sum(dyn_int* a,dyn_int* b){
             } 
         }   
     }
-    sum->size = (size_t)((sum->head_index)*sizeof(int32_t));
+    sum->size = (size_t)((sum->head_index+1)*sizeof(int32_t));
     sum->dig = malloc(sum->size);
     printf("Allocating %d bytes for sum  |  signA: %d  |  signB: %d  |  signSum: %c\n", (int)sum->size,sA,sB,sum->sign);
 
@@ -110,12 +100,7 @@ dyn_int* sum(dyn_int* a,dyn_int* b){
         else carry = 0;
         //printf("Index=[%d]   |   A: %010d   |   B: %010d   |   Sum: %010d   |   Carry: %d \n",i,a->dig[i],b->dig[i],sum->dig[i],carry);
     }
-    while (sum->dig[sum->head_index]==0 && sum->head_index>0) {
-        //int32_t* ptr = &sum->dig[sum->head_index];
-        //free(ptr);
-        sum->head_index--;
-    }
-    //sum->size = (size_t)((sum->head_index)*sizeof(int32_t));
+    while (sum->dig[sum->head_index]==0 && sum->head_index>0) sum->head_index--;
     return sum;
 }
 
@@ -142,27 +127,35 @@ dyn_int* mult(dyn_int* a,dyn_int* b){
     return NULL;
 }
 
-
-
 dyn_int* get_big(){
     Lista input = criar_lista();
     dyn_int* out = malloc(sizeof(dyn_int));
     uint16_t n = 0;
 
-    while(1) {
+    while (1){
         char temp = getchar();
-        if (temp == '\n') break;
-        Lista novo = malloc(sizeof(struct no));
-        novo->dado = temp;
-        novo->prox = input;
-        input = novo;
-        n++;
+        if (temp == '-') {out->sign = '-'; printf("Negative Detected!   |    ");}
+        else out->sign = '\0';
+        while(temp != '\n') {
+            if ((temp >= 48 && 57 >= temp) && !(n==0 && temp=='0')) {
+                n++;
+                Lista novo = malloc(sizeof(struct no));
+                novo->dado = temp;
+                novo->prox = input;
+                input = novo;
+           }temp = getchar();
+        }
+        if (n>max_n){
+        printf("input too big! ");
+        destruir_lista(input);
+        }
+        if (input != NULL) break;
+        else printf("Try again\n");
     }
-    if (n>max_n){printf("Too many digits! Exiting\n");return NULL;}
+    
 
     out->size = (size_t)sizeof(int32_t)*(((n-1)/9)+1);
     out->dig = malloc(out->size);
-    out->sign = '\0';
     char* buffer = malloc(sizeof(char)*10);
     memset(buffer, '0', 9);
     buffer[9]='\0';
@@ -176,10 +169,8 @@ dyn_int* get_big(){
         Lista tmp = input;
         input = input->prox;
         free(tmp);
-        if (((int)buffer[i] < 47 || 58 < (int)buffer[i]) && input!=NULL){n-=1; continue;}
         i--;
         if (i==-1 || input==NULL) {
-            if (buffer[i+1] == '-') {buffer[i+1]='0';out->sign='-'; printf("Negative Detected!  |  ");}
             sscanf(buffer, "%d", &out->dig[index]);
             out->head_index=index;
             memset(buffer, '0', 9);
@@ -188,7 +179,7 @@ dyn_int* get_big(){
         } 
     }
 
-    if (out->dig[out->head_index]==0) out->head_index--;
+    //if (out->dig[out->head_index]==0) out->head_index--;
     printf("Digits: %4d\n",n);
     free(buffer);
     free(input);
@@ -209,7 +200,7 @@ int main( ) {
     if(B==NULL) return 1;
     print_int(B);
 
-    dyn_int* C = sub(A,B);
+    dyn_int* C = sum(A,B);
     print_int(C);
 
     free_int(A);
@@ -219,5 +210,6 @@ int main( ) {
     end = clock();
     cpu_time_used = ((double) (end - start)) / (CLOCKS_PER_SEC/1000);
     printf("\n\ntime: %.3fms\n", cpu_time_used);
+    //system("PAUSE");
     return 0;
 }
