@@ -3,67 +3,73 @@
 #include <time.h>
 #include "bignumber.h"
 
-VectorInt vectorint(void) {
-    VectorInt v = malloc(sizeof(vecint));
+// cria um bignumber (representado por um vetor dinâmico)
+BigNumber bignumber(void) {
+    BigNumber v = malloc(sizeof(bignum));
     v->data = malloc(sizeof(int8));
     v->nelements = 0;
-    v->signal = 1;
+    v->sign = 1;
     return v;
 }
 
-VectorInt vectorint_insert(VectorInt v, int8 a) {
-    v->data = realloc(v->data, sizeof(int8) * (v->nelements+1));
-    v->data[v->nelements] = a;
-    v->nelements++;
-    return v;
+// insere elemento no bignumber
+void bignumber_insert(BigNumber A, int8 a) {
+    A->data = realloc(A->data, sizeof(int8) * (A->nelements+1));
+    A->data[A->nelements] = a;
+    A->nelements++;
 }
 
-void vectorint_free(VectorInt v) {
-    free(v->data);
-    free(v);
+// libera memória alocada para o bignumber
+void bignumber_free(BigNumber A) {
+    free(A->data);
+    free(A);
 }
 
-void read_input(VectorInt A) {
+// le input do usuário (terminal)
+void read_input(BigNumber A) {
     char temp = getchar();
     
     if (temp == 45) {  
-        A->signal = -1;
+        A->sign = -1;
         temp = (int)getchar();
     }
     while (temp != 10) {  
-        A = vectorint_insert(A, temp - 48);  
+        bignumber_insert(A, temp - 48);  
         temp = (int)getchar();
     }
 }
 
-void file_read_input(VectorInt A, FILE* file) {
+// le input do usuário (arquivo)
+void read_input_file(BigNumber A, FILE* file) {
     char temp = fgetc(file);
     
     if (temp == 45) {  
-        A->signal = -1;
+        A->sign = -1;
         temp = (int)fgetc(file);
     }
     while (temp != 10) {  
-        A = vectorint_insert(A, temp - 48);  
+        bignumber_insert(A, temp - 48);  
         temp = (int)fgetc(file);
     }
 }
 
-void reverse(VectorInt array) {
+// inverte o bignumber para realização das operações
+void reverse(BigNumber A) {
     int aux;
     int inicio = 0;
-    int final = array->nelements - 1;
+    int final = A->nelements - 1;
 
     while (inicio < final) {
-        aux = array->data[inicio];
-        array->data[inicio] = array->data[final];
-        array->data[final] = aux;
+        aux = A->data[inicio];
+        A->data[inicio] = A->data[final];
+        A->data[final] = aux;
         inicio++;
         final--;
     }
 }
 
-void filter_left_zero(VectorInt A) {
+// filtra os zeros à esquerda
+void filter_left_zero(BigNumber A) {
     int i = A->nelements - 1;
 
     while (A->data[i] == 0 && A->nelements > 1) {
@@ -72,12 +78,14 @@ void filter_left_zero(VectorInt A) {
     }
 }
 
+// retorna o maior numero entre dois inteiros
 int max(int a, int b) {
     if (a > b) return a;
     return b;
 }
 
-void soma(VectorInt A, VectorInt B, VectorInt RES) {
+// soma os bignumbers
+void add(BigNumber A, BigNumber B, BigNumber RES) {
     int i, up, tmp_sum, limit;
 
     up = 0;
@@ -88,12 +96,12 @@ void soma(VectorInt A, VectorInt B, VectorInt RES) {
 
     for (i = 0; i < limit + 1; i++) {
         if (i >= A->nelements)
-            vectorint_insert(A, 0);
+            bignumber_insert(A, 0);
         if (i >= B->nelements)
-            vectorint_insert(B, 0);
+            bignumber_insert(B, 0);
 
         tmp_sum = A->data[i] + B->data[i] + up;
-        vectorint_insert(RES, tmp_sum % 10);
+        bignumber_insert(RES, tmp_sum % 10);
         up = tmp_sum / 10;
     }
 
@@ -101,10 +109,12 @@ void soma(VectorInt A, VectorInt B, VectorInt RES) {
         RES->nelements--;
 
     filter_left_zero(RES);
-    RES->data[RES->nelements - 1] *= A->signal;
+    RES->data[RES->nelements - 1] *= A->sign;
 }
 
-int compare(VectorInt A, VectorInt B) {
+// compara dois bignumbers e retorna qual o maior
+// se o A for maior, retorna 1; se B for maior, retorna 2, se forem iguais retorna 0
+int compare(BigNumber A, BigNumber B) {
     int i;
 
     if (A->nelements > B->nelements)
@@ -125,56 +135,58 @@ int compare(VectorInt A, VectorInt B) {
     return 0;
 }
 
-void subtracao(VectorInt A, VectorInt B, VectorInt RES) {
-    VectorInt Maior;
-    VectorInt Menor;
+// subtração de dois bignumbers
+void subtract(BigNumber A, BigNumber B, BigNumber RES) {
+    BigNumber Higher;
+    BigNumber Lower;
 
     int i, tmp_sub, limit, cmpr;
     cmpr = compare(A, B);
 
     if (cmpr == 1) {
-        Maior = A;
-        Menor = B;
+        Higher = A;
+        Lower = B;
     } else {
-        Maior = B;
-        Menor = A;
+        Higher = B;
+        Lower = A;
     }
 
-    limit = Maior->nelements + 1;
+    limit = Higher->nelements + 1;
 
     reverse(A);
     reverse(B);
 
     for (i = 0; i < limit; i++) {
-        if (i < Maior->nelements)
-            vectorint_insert(Maior, 0);
+        if (i < Higher->nelements)
+            bignumber_insert(Higher, 0);
 
-        if (i < Menor->nelements)
-            vectorint_insert(Menor, 0);
+        if (i < Lower->nelements)
+            bignumber_insert(Lower, 0);
 
-        if (Maior->data[i] < Menor->data[i]) {
-            Maior->data[i] += 10;
-            Maior->data[i + 1]--;
+        if (Higher->data[i] < Lower->data[i]) {
+            Higher->data[i] += 10;
+            Higher->data[i + 1]--;
         }
 
-        tmp_sub = Maior->data[i] - Menor->data[i];
+        tmp_sub = Higher->data[i] - Lower->data[i];
 
-        vectorint_insert(RES, tmp_sub);
+        bignumber_insert(RES, tmp_sub);
     }
     if (cmpr == 0)
         RES->nelements = 1;
 
     filter_left_zero(RES);
 
-    if (Maior->signal == Menor->signal)
-        RES->data[RES->nelements - 1] *= Maior->signal;
-    if (A->signal == -1 && B->signal == 1)
+    if (Higher->sign == Lower->sign)
+        RES->data[RES->nelements - 1] *= Higher->sign;
+    if (A->sign == -1 && B->sign == 1)
         RES->data[RES->nelements - 1] *= -1;
     if (cmpr == 2)
         RES->data[RES->nelements - 1] *= -1;
 }
 
-void multiplicacao(VectorInt A, VectorInt B, VectorInt RES) {
+// multiplicação de dois big numbers
+void multiply(BigNumber A, BigNumber B, BigNumber RES) {
     int i, j, tmp_mul, up;
 
     reverse(A);
@@ -185,50 +197,55 @@ void multiplicacao(VectorInt A, VectorInt B, VectorInt RES) {
 
         for (j = 0; j < B->nelements; j++) {
             if (i + j == RES->nelements)
-                vectorint_insert(RES, 0);
+                bignumber_insert(RES, 0);
 
             tmp_mul = A->data[i] * B->data[j] + up + RES->data[i + j];
             RES->data[i + j] = tmp_mul % 10;
             up = tmp_mul / 10;
         }
         while (up > 0) {
-            vectorint_insert(RES, up % 10);
+            bignumber_insert(RES, up % 10);
             up /= 10;
         }
     }
     filter_left_zero(RES);
 
-    RES->signal = A->signal * B->signal;
-    RES->data[RES->nelements - 1] *= RES->signal;
+    RES->sign = A->sign * B->sign;
+    RES->data[RES->nelements - 1] *= RES->sign;
 }
 
-void vectorint_print(VectorInt X) {
+// printa no terminal um bignumber
+void bignumber_print(BigNumber A) {
     int i;
-    for (i = X->nelements - 1; i >= 0; --i)
-        printf("%d", (int)X->data[i]);
+    for (i = A->nelements - 1; i >= 0; --i)
+        printf("%d", (int)A->data[i]);
     printf("\n");
 }
 
-void file_vectorint_print(VectorInt X, FILE* out) {
-    for (int i = X->nelements - 1; i >= 0; --i) fprintf(out,"%d", (int)X->data[i]);
+// escreve o bignumber em um arquivo
+void bignumber_print_file(BigNumber A, FILE* out) {
+    for (int i = A->nelements - 1; i >= 0; --i) fprintf(out,"%d", (int)A->data[i]);
     fprintf(out,"\n");
 }
 
-int choose_operation(char op, int signal_a, int signal_b) {
-    if ((op == '+') && (signal_a == signal_b)) {
+// avalia qual operação deve ser executada de acordo com a combinação 
+// dos sinais dos números e do operador
+int choose_operation(char op, int sign_a, int sign_b) {
+    if ((op == '+') && (sign_a == sign_b)) {
         return 1; // adicao
-    } else if ((op == '+') && (signal_a != signal_b)) {
+    } else if ((op == '+') && (sign_a != sign_b)) {
         return 0; // subtracao
-    } else if ((op == '-') && (signal_a == signal_b)) {
+    } else if ((op == '-') && (sign_a == sign_b)) {
         return 0; // subtracao
-    } else if ((op == '-') && (signal_a != signal_b)) {
+    } else if ((op == '-') && (sign_a != sign_b)) {
         return 1; // adicao
     } else {
         return 2; // multiplicacao
     }
 }
 
-char* nome_saida (const char* input){
+// atribui nome ao arquivo de saida
+char* file_name(const char* input){
     int n=5;
     for (int i=0; input[i] != '.' && input[i] != '\0';i++) n++;
     char* out = malloc(sizeof(char)*n);
@@ -240,6 +257,4 @@ char* nome_saida (const char* input){
     out[n-1] = '\0';
     return out;
 }
-
-
 

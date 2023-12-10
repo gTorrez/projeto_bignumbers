@@ -8,60 +8,60 @@ int main(int argc, char* argv[]) {
     double cpu_time_used;
     start = clock();
 
-    VectorInt A, B, RES;
+    BigNumber A, B, RES;
     char operator;
 
-    FILE* arquivo = fopen(argv[1], "r");
+    FILE* file = fopen(argv[1], "r");
 
     if (argc != 2) {
         printf("Erro, sintaxe correta: %s filename\n", argv[0]);
         return 1;
     }
 
-    if (arquivo == NULL) {
+    if (file == NULL) {
         printf("Erro ao abrir o arquivo");
         return 1;
     }
 
     FILE* out; 
-    char* output = nome_saida(argv[1]);
+    char* output = file_name(argv[1]);
     out = fopen(output, "wr");
     
 
-    while((operator = fgetc(arquivo)) != EOF){
-        ungetc(operator, arquivo);
+    while((operator = fgetc(file)) != EOF){
+        ungetc(operator, file);
 
-        A = vectorint();
-        B = vectorint();
-        RES = vectorint();
+        A = bignumber();
+        B = bignumber();
+        RES = bignumber();
 
-        file_read_input(A,arquivo);
-        file_read_input(B,arquivo);
-        fscanf(arquivo,"%c\n", &operator);
+        read_input_file(A, file);
+        read_input_file(B, file);
+        fscanf(file, "%c\n", &operator);
         
 
-        switch (choose_operation(operator, A->signal, B->signal))
+        switch (choose_operation(operator, A->sign, B->sign))
         {
         case 0:
-            subtracao(A, B, RES);
+            subtract(A, B, RES);
             break;
         case 1:
-            soma(A, B, RES);
+            add(A, B, RES);
             break;
         default:
-            multiplicacao(A, B, RES);
+            multiply(A, B, RES);
             break;
         }
 
-        file_vectorint_print(RES, out);
+        bignumber_print_file(RES, out);
 
-        vectorint_free(A);
-        vectorint_free(B);
-        vectorint_free(RES);
+        bignumber_free(A);
+        bignumber_free(B);
+        bignumber_free(RES);
     }
 
     fclose(out);
-    fclose(arquivo);
+    fclose(file);
     free(output);
 
 
