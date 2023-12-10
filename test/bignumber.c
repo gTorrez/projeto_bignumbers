@@ -29,14 +29,12 @@ VectorInt vectorint_insert(VectorInt v, int a) {
     return v;
 }
 
-VectorInt vectorint_free(VectorInt v) {
-    free(v->data);
-    free(v);
-    return NULL;
+void vectorint_free(VectorInt* v) {
+    free((*v)->data);
+    free((*v));
 }
 
-VectorInt read_input(void) {
-    VectorInt A = vectorint();
+void read_input(VectorInt* A) {
     int temp, count, check;
     count = 0;
     check = 0;
@@ -51,30 +49,29 @@ VectorInt read_input(void) {
             break;
 
         if (temp != 45) {
-            A = vectorint_insert(A, temp - 48);
+            vectorint_insert((*A), temp - 48);
             count += 1;
         }
     }
-    A->nelements = count;
-    if (check == -1) A->signal = -1;
-
-    return A;
+    (*A)->nelements = count;
+    if (check == -1) (*A)->signal = -1;
 }
 
-VectorInt reverse(VectorInt array) {
+
+void reverse(VectorInt* array) {
     int aux;
     int inicio = 0;
-    int final = array->nelements - 1;
+    int final = (*array)->nelements - 1;
 
     while (inicio < final) {
-        aux = array->data[inicio];
-        array->data[inicio] = array->data[final];
-        array->data[final] = aux;
+        aux = (*array)->data[inicio];
+        (*array)->data[inicio] = (*array)->data[final];
+        (*array)->data[final] = aux;
         inicio += 1;
         final -= 1;
     }
 
-    return array;
+
 }
 
 int max(int a, int b){
@@ -84,49 +81,47 @@ int max(int a, int b){
     return b;
 }
 
-VectorInt soma(VectorInt A, VectorInt B) {
+void soma(VectorInt* A, VectorInt* B, VectorInt* RES) {
     int i, up, tmp_sum, limit;
 
-    VectorInt RES = vectorint();
-
     up = 0;
-    limit = max(A->nelements, B->nelements);
+    limit = max((*A)->nelements, (*B)->nelements);
 
-    A = reverse(A);
-    B = reverse(B);
+    reverse(A);
+    reverse(B);
 
     for (i = 0; i < limit + 1; i++) {
-        if (i >= A->nelements) A = vectorint_insert(A, 0);
-        if (i >= B->nelements) B = vectorint_insert(B, 0);
+        if (i >= (*A)->nelements) vectorint_insert((*A), 0);
+        if (i >= (*B)->nelements) vectorint_insert((*B), 0);
 
-        tmp_sum = A->data[i] + B->data[i] + up;
-        RES = vectorint_insert(RES, tmp_sum % 10);
+        tmp_sum = (*A)->data[i] + (*B)->data[i] + up;
+        vectorint_insert((*RES), tmp_sum % 10);
         up = tmp_sum / 10;
     }
 
-    if (RES->data[RES->nelements - 1] == 0) 
-        RES->nelements--;
+    if ((*RES)->data[(*RES)->nelements - 1] == 0) 
+        (*RES)->nelements--;
 
-    RES->data[RES->nelements - 1] *= A->signal;
+    (*RES)->data[(*RES)->nelements - 1] *= (*A)->signal;
 
-    return RES;
+    filter_left_zero(RES);
 }
 
 
-int compare(VectorInt A, VectorInt B) {
+int compare(VectorInt* A, VectorInt* B) {
     int i;
 
-    if (A->nelements > B->nelements)
+    if ((*A)->nelements > (*B)->nelements)
         return 1;
 
-    else if (A->nelements < B->nelements)
+    else if ((*A)->nelements < (*B)->nelements)
         return 2;
 
     else {
-        for(i=0; i<A->nelements; i++){
-            if (A->data[i] > B->data[i])
+        for(i=0; i<(*A)->nelements; i++){
+            if ((*A)->data[i] > (*B)->data[i])
                 return 1;
-            else if (A->data[i] < B->data[i])
+            else if ((*A)->data[i] < (*B)->data[i])
                 return 2;
             else
                 continue;
@@ -136,23 +131,21 @@ int compare(VectorInt A, VectorInt B) {
     return 0;
 }
 
-VectorInt filter_left_zero(VectorInt A) {
-    int i = A->nelements - 1;
-    //printf("nelements: %d\n", A->nelements);
-    while (A->data[i] != A->data[0]) {
-        //printf("limpa zero: %d\n", A->data[i]);
-        if (A->data[A->nelements - 1] == 0 && A->nelements != 1)
-            A->nelements -= 1;
+void filter_left_zero(VectorInt* A) {
+    int i = (*A)->nelements - 1;
+    
+    while ((*A)->data[i] == 0 && (*A)->nelements > 1) {
+        if ((*A)->data[(*A)->nelements - 1] == 0 && (*A)->nelements != 1)
+            (*A)->nelements -= 1;
 
         i -= 1;
     }
-    return A;
 }
 
-VectorInt subtracao(VectorInt A, VectorInt B) {
-    VectorInt Maior;
-    VectorInt Menor;
-    VectorInt RES = vectorint();
+void subtracao(VectorInt* A, VectorInt* B, VectorInt* RES) {
+    VectorInt* Maior;
+    VectorInt* Menor;
+
     int i, tmp_sub, limit, cmpr;
     cmpr = compare(A, B);
 
@@ -166,71 +159,69 @@ VectorInt subtracao(VectorInt A, VectorInt B) {
         Menor = A;
     }
 
-    limit = Maior->nelements + 1;
+    limit = (*Maior)->nelements + 1;
 
-    A = reverse(A);
-    B = reverse(B);
+    reverse(A);
+    reverse(B);
 
     for (i = 0; i < limit; i++) {
-        if (i < Maior->nelements)
-            Maior = vectorint_insert(Maior, 0);
+        if (i < (*Maior)->nelements)
+            vectorint_insert((*Maior), 0);
 
-        if (i < Menor->nelements)
-            Menor = vectorint_insert(Menor, 0);
+        if (i < (*Menor)->nelements)
+            vectorint_insert((*Menor), 0);
 
-        if (Maior->data[i] < Menor->data[i]) {
-            Maior->data[i] += 10;
-            Maior->data[i + 1] -= 1;
+        if ((*Maior)->data[i] < (*Menor)->data[i]) {
+            (*Maior)->data[i] += 10;
+            (*Maior)->data[i + 1] -= 1;
         }
 
-        tmp_sub = Maior->data[i] - Menor->data[i];
+        tmp_sub = (*Maior)->data[i] - (*Menor)->data[i];
 
-        RES = vectorint_insert(RES, tmp_sub);
+        vectorint_insert((*RES), tmp_sub);
     }
-    if(cmpr == 0) RES->nelements = 1;
+    if(cmpr == 0) (*RES)->nelements = 1;
 
-    RES = filter_left_zero(RES);
+    filter_left_zero(RES);
 
-    if (Maior->signal == Menor->signal) RES->data[RES->nelements - 1] *= Maior->signal;
-    if (A->signal == -1 && B->signal == 1) RES->data[RES->nelements - 1] *= -1;
-    if (cmpr == 2) RES->data[RES->nelements - 1] *= -1;
-    
-    return RES;
+    if ((*Maior)->signal == (*Menor)->signal) (*RES)->data[(*RES)->nelements - 1] *= (*Maior)->signal;
+    if ((*A)->signal == -1 && (*B)->signal == 1) (*RES)->data[(*RES)->nelements - 1] *= -1;
+    if (cmpr == 2) (*RES)->data[(*RES)->nelements - 1] *= -1;
 }
 
-VectorInt multiplicacao(VectorInt A, VectorInt B) {
-    int i, j, tmp_mul, up;
-    VectorInt RES = vectorint();
-    A = reverse(A);
-    B = reverse(B);
 
-    for (i = 0; i < A->nelements; i++) {
+void multiplicacao(VectorInt* A, VectorInt* B, VectorInt* RES) {
+    int i, j, tmp_mul, up;
+    
+    reverse(A);
+    reverse(B);
+
+    for (i = 0; i < (*A)->nelements; i++) {
         up = 0;
 
-        for (j = 0; j < B->nelements; j++) {
-            if (i + j == RES->nelements) {
-                RES = vectorint_insert(RES, 0);
-            }
-            tmp_mul = A->data[i] * B->data[j] + up + RES->data[i + j];
-            RES->data[i + j] = tmp_mul % 10;
+        for (j = 0; j < (*B)->nelements; j++) {
+            if (i + j == (*RES)->nelements) 
+                vectorint_insert((*RES), 0);
+            
+            tmp_mul = (*A)->data[i] * (*B)->data[j] + up + (*RES)->data[i + j];
+            (*RES)->data[i + j] = tmp_mul % 10;
             up = tmp_mul / 10;
         }
         while (up > 0) {
-            RES = vectorint_insert(RES, up % 10);
+            vectorint_insert((*RES), up % 10);
             up /= 10;
         }
     }
-    RES->signal = A->signal * B->signal;
-    RES->data[RES->nelements-1] *= RES->signal;
+    (*RES)->signal = (*A)->signal * (*B)->signal;
+    (*RES)->data[(*RES)->nelements-1] *= (*RES)->signal;
 
     filter_left_zero(RES);
-    return RES;
 }
 
-void vectorint_print(VectorInt X) {
+void vectorint_print(VectorInt* X) {
     int i;
-    for (i = X->nelements - 1; i >= 0; --i) 
-        printf("%d", X->data[i]);
+    for (i = (*X)->nelements - 1; i >= 0; --i) 
+        printf("%d", (*X)->data[i]);
 }
 
 
