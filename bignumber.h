@@ -24,5 +24,6 @@ void multiplicacao(VectorInt A, VectorInt B, VectorInt RES);
 void vectorint_print(VectorInt X);
 void file_vectorint_print(VectorInt X, FILE* out);
 int choose_operation(char op, int signal_a, int signal_b);
+char* nome_saida (const char* input);
 
 #endif

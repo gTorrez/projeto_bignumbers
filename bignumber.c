@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-//#include <time.h>
+#include <time.h>
 #include "bignumber.h"
 
 VectorInt vectorint(void) {
@@ -15,19 +15,12 @@ VectorInt vectorint_insert(VectorInt v, int8 a) {
     v->data = realloc(v->data, sizeof(int8) * (v->nelements+1));
     v->data[v->nelements] = a;
     v->nelements++;
-
     return v;
 }
 
 void vectorint_free(VectorInt v) {
-    if (v!=NULL){
-        if (v->data != NULL){
-            free(v->data);
-            v->data = NULL;
-        }
-        free(v);
-        v = NULL;
-    }
+    free(v->data);
+    free(v);
 }
 
 void read_input(VectorInt A) {
@@ -74,16 +67,13 @@ void filter_left_zero(VectorInt A) {
     int i = A->nelements - 1;
 
     while (A->data[i] == 0 && A->nelements > 1) {
-        if (A->data[A->nelements - 1] == 0 && A->nelements != 1)
-            A->nelements--;
-
+        if (A->data[A->nelements - 1] == 0 && A->nelements != 1) A->nelements--;
         i--;
     }
 }
 
 int max(int a, int b) {
-    if (a > b)
-        return a;
+    if (a > b) return a;
     return b;
 }
 
@@ -216,13 +206,11 @@ void vectorint_print(VectorInt X) {
     int i;
     for (i = X->nelements - 1; i >= 0; --i)
         printf("%d", (int)X->data[i]);
-    printf("\n\n");
+    printf("\n");
 }
 
 void file_vectorint_print(VectorInt X, FILE* out) {
-    int i;
-    for (i = X->nelements - 1; i >= 0; --i)
-        fprintf(out,"%d", (int)X->data[i]);
+    for (int i = X->nelements - 1; i >= 0; --i) fprintf(out,"%d", (int)X->data[i]);
     fprintf(out,"\n");
 }
 
@@ -239,4 +227,19 @@ int choose_operation(char op, int signal_a, int signal_b) {
         return 2; // multiplicacao
     }
 }
+
+char* nome_saida (const char* input){
+    int n=5;
+    for (int i=0; input[i] != '.' && input[i] != '\0';i++) n++;
+    char* out = malloc(sizeof(char)*n);
+    for (int i=0;i<n-5;i++) out[i] = input[i];
+    out[n-5] = '.';
+    out[n-4] = 'o';
+    out[n-3] = 'u';
+    out[n-2] = 't';
+    out[n-1] = '\0';
+    return out;
+}
+
+
 
