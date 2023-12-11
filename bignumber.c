@@ -122,7 +122,7 @@ int compare(BigNumber A, BigNumber B) {
     else if (A->nelements < B->nelements)
         return 2;
     else {
-        for (i = 0; i < A->nelements; i++) {
+        for (i = A->nelements-1; i >= 0; i--) {
             if (A->data[i] > B->data[i])
                 return 1;
             else if (A->data[i] < B->data[i])
@@ -141,6 +141,13 @@ void subtract(BigNumber A, BigNumber B, BigNumber RES) {
     BigNumber Lower;
 
     int i, tmp_sub, limit, cmpr;
+
+    reverse(A);
+    reverse(B);
+
+    filter_left_zero(A);
+    filter_left_zero(B);
+
     cmpr = compare(A, B);
 
     if (cmpr == 1) {
@@ -152,9 +159,6 @@ void subtract(BigNumber A, BigNumber B, BigNumber RES) {
     }
 
     limit = Higher->nelements + 1;
-
-    reverse(A);
-    reverse(B);
 
     for (i = 0; i < limit; i++) {
         if (i < Higher->nelements)
