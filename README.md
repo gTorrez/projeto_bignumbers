@@ -51,9 +51,9 @@ Guilherme Carvalho Torres
 
  typedef signed char int8;\
  typedef struct {\
- int8\* data;\
- int nelements;\
- int signal;\
+   int8\* data;\
+   int nelements;\
+   int signal;\
  } bignum;
 
 
