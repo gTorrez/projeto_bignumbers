@@ -1,6 +1,7 @@
 <div align="center">
   
-![image](https://github.com/gTorrez/projeto_bignumbers/assets/83144641/bfa22969-3a3a-4981-a679-b89cf7a651e7)
+![image](https://github.com/gTorrez/projeto_bignumbers/assets/83144641/217f16ef-b789-4f9a-82e3-79c12e39f20e)
+
 
 ## **UNIVERSIDADE FEDERAL DO ABC**
 </div>
